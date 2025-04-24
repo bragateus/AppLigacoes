@@ -3,7 +3,8 @@
 Um aplicativo simples pra equipes SDR (Sales Development Representatives) contarem e monitorarem suas ligações, leads e reuniões agendadas no dia-a-dia.
 
 ### Preview do App
-![image](https://github.com/user-attachments/assets/2d8e91ab-34e5-4169-b8f0-6b896dcdbf12)
+
+![image](https://github.com/user-attachments/assets/4ace41ea-3c1d-47de-b7f9-d175449a0ef6)
 
 
 ## 🚀 Pra Que Serve?
@@ -39,9 +40,11 @@ pip install tkinter
    - Atualize os campos de Leads e Reuniões quando conseguir
 
 3. **Controles**:
-   - `Resetar Contador`: Zera os números do dia (cuidado!)
-   - `Abrir Histórico`: Visualiza todo seu histórico de ligações por dia
-   - `Tema`: Alterna entre modo claro e escuro
+   - `Resetar Contador`: Zera os números do dia (cuidado!).
+   - `Abrir Histórico`: Visualiza todo seu histórico de ligações por dia.
+   - `Tema`: Alterna entre modo claro e escuro.
+   - `Cor`: Altera a cor do fundo da janela do app para uma cor personalizada.
+   - `Anotações`: Abre uma janela para anotações, que fica sobreposta a outras janelas.
 
 ## 📊 O Que É Registrado
 
@@ -73,7 +76,7 @@ Você pode facilmente:
  - Adicionar autenticação de usuário
  - Implementar relatórios gráficos
  - Adicionar exportação para Excel/CSV
- - Adicionar campo de escrita de observações
+ - ~Adicionar campo de escrita de observações~ ✅ 
 
 ## 🤝 Contribuição
 
