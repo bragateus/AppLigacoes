@@ -1,12 +1,32 @@
+import os
+import sys
+from datetime import datetime
 import tkinter as tk
 from tkinter import scrolledtext, messagebox, colorchooser
-from datetime import datetime
-import os
+from tkinter import PhotoImage 
+import random
+import webbrowser  
 
-# Caminho para o arquivo onde o contador será salvo
-diretorio_atual = os.path.dirname(os.path.realpath(__file__))
-caminho_arquivo = os.path.join(diretorio_atual, 'historico_ligacoes.txt')
-caminho_anotacoes = os.path.join(diretorio_atual, 'anotacoes.txt')
+
+# Determinar o diretório base (onde o executável ou script está localizado pra teste)
+if getattr(sys, 'frozen', False):  # É executável?
+    diretorio_base = os.path.dirname(sys.executable)
+else:  # Caso contrário, usa o diretório do script
+    diretorio_base = os.path.dirname(os.path.realpath(__file__))
+
+# Caminho para os arquivos
+caminho_arquivo = os.path.join(diretorio_base, 'historico_ligacoes.txt')
+caminho_anotacoes = os.path.join(diretorio_base, 'anotacoes.txt')
+
+# Função para verificar e criar os arquivos, se precisar
+def verificar_ou_criar_arquivo(caminho):
+    if not os.path.exists(caminho):
+        with open(caminho, 'w') as f:
+            f.write("")  # Cria o arquivo vazio novo
+
+# Verificar e criar os arquivos necessários
+verificar_ou_criar_arquivo(caminho_arquivo)
+verificar_ou_criar_arquivo(caminho_anotacoes)
 
 # Variáveis globais
 contador = 0
@@ -19,9 +39,11 @@ corEntry = "#4f4f4f"
 corFonte = "#0084d6"
 corClara = "white"
 corBotao = "#0084d6"
+corBotaoMenos = "#42505A" 
 corReset = "#ff4d4d"
+corLinks = "#454546"
 
-# Função otimizada para carregar os contadores
+# Função para carregar os contadores do jeito certo
 def carregar_contador():
     global contador, leads, reunioes
     if not os.path.exists(caminho_arquivo):
@@ -35,7 +57,7 @@ def carregar_contador():
     # Procurar a data atual no arquivo (começa do final para melhor performance)
     for i in range(len(linhas)-1, -1, -1):
         if linhas[i].strip() == f"---{data_atual}---":
-            if i+4 < len(linhas):  # Verifica se há linhas suficientes após a data
+            if i+4 < len(linhas):  
                 try:
                     contador = int(linhas[i+1].split(":")[1].strip())
                     leads = int(linhas[i+2].split(":")[1].strip())
@@ -44,7 +66,7 @@ def carregar_contador():
                     pass
             break
 
-# Função otimizada para salvar os contadores
+# Função pra Salvar os contadores
 def salvar_contador(reset=False):
     global contador, leads, reunioes
     data_atual = datetime.now().strftime('%d-%m-%Y')
@@ -61,14 +83,14 @@ def salvar_contador(reset=False):
     existe_data = False
     indice_data = -1
 
-    # Procura a data atual no arquivo
+    # Procura a data atual no txt
     for i, linha in enumerate(linhas_existentes):
         if linha.strip() == nova_entrada.strip():
             existe_data = True
             indice_data = i
             break
 
-    # Prepara as novas linhas
+    # Novas linhas no txt
     linhas_novas = []
     if existe_data:
         linhas_novas = linhas_existentes[:indice_data]
@@ -78,7 +100,6 @@ def salvar_contador(reset=False):
             f"L: {leads}\n",
             f"R: {reunioes}\n",
             f"Ramal: {ramal}\n",
-            
         ])
     else:
         linhas_novas = linhas_existentes + [
@@ -87,7 +108,6 @@ def salvar_contador(reset=False):
             f"L: {leads}\n",
             f"R: {reunioes}\n",
             f"Ramal: {ramal}\n",
-            
         ]
 
     # Adiciona o registro atual
@@ -143,7 +163,7 @@ def selecionar_cor():
         corClara = corFonte
         atualizar_tema()
 
-# Função para atualizar o tema
+# Função para atualizar o tema de acordo
 def atualizar_tema():
     elementos = [
         (janela, 'bg'), (frame_ramal, 'bg'), (label_ramal, 'bg'),
@@ -152,7 +172,9 @@ def atualizar_tema():
         (label_leads, 'bg'), (label_leads, 'fg'), (entry_leads, 'bg'),
         (entry_leads, 'fg'), (frame_reunioes, 'bg'), (label_reunioes, 'bg'),
         (label_reunioes, 'fg'), (entry_reunioes, 'bg'), (entry_reunioes, 'fg'),
-        (frame_tema_cor, 'bg')  # Adicionado o frame dos botões de tema e cor
+        (frame_tema_cor, 'bg'),  
+        (frame_ligacoes, 'bg'),  
+        (frame_icones, 'bg'), (icone_github, 'bg'),(icone_linkedin, 'bg'),
     ]
     for elemento, atributo in elementos:
         if atributo == 'bg':
@@ -168,6 +190,9 @@ def adicionar_lead():
     entry_leads.insert(0, str(leads))
     salvar_contador()
     piscar_tela("#43b02a")
+    x = botao_lead.winfo_rootx() - janela.winfo_rootx() + botao_lead.winfo_width() // 2
+    y = botao_lead.winfo_rooty() - janela.winfo_rooty() + botao_lead.winfo_height() // 2
+
 
 # Função para incrementar +1 no número de reuniões
 def adicionar_reuniao():
@@ -177,6 +202,7 @@ def adicionar_reuniao():
     entry_reunioes.insert(0, str(reunioes))
     salvar_contador()
     piscar_tela("#43b02a")
+
 
 # Função para piscar a tela com uma transição suave
 def piscar_tela(cor_temporaria):
@@ -194,7 +220,34 @@ def contar_ligacao():
     contador += 1
     label_contador.config(text=f"Ligações: {contador}")
     salvar_contador()
-    
+
+
+# Função para diminuir -1 nos leads
+def diminuir_lead():
+    global leads
+    if leads > 0:  # Evitar valores negativos
+        leads -= 1
+        entry_leads.delete(0, tk.END)
+        entry_leads.insert(0, str(leads))
+        salvar_contador()
+
+# Função para diminuir -1 reuinões, 
+def diminuir_reuniao():
+    global reunioes
+    if reunioes > 0:  
+        reunioes -= 1
+        entry_reunioes.delete(0, tk.END)
+        entry_reunioes.insert(0, str(reunioes))
+        salvar_contador()
+
+# Função para diminuir -1 no número de ligações, sem valor negativo*
+def diminuir_ligacao():
+    global contador
+    if contador > 0: 
+        contador -= 1
+        label_contador.config(text=f"Ligações: {contador}")
+        salvar_contador()
+
 # Função para resetar o contador com confirmação
 def resetar_contador():
     global contador, leads, reunioes
@@ -245,17 +298,26 @@ def alternar_tema():
         corClara = "white"
     atualizar_tema()
 
+# Função para abrir o GitHub
+def abrir_github():
+    webbrowser.open("https://github.com/bragateus")  #GitHub
+
+# Função para abrir o LinkedIn
+def abrir_linkedin():
+    webbrowser.open("https://www.linkedin.com/in/mateus-braga-lima") 
+
 # Configuração da janela principal
 janela = tk.Tk()
 janela.title("Contador de Ligações")
-janela.geometry("180x335")
+janela.geometry("180x340")
 janela.configure(bg=corFundo)
 janela.wm_attributes("-topmost", 1)
 
-# Posicionamento otimizado
+
+# Posicionamento canto da tela
 largura_tela = janela.winfo_screenwidth()
 altura_tela = janela.winfo_screenheight()
-janela.geometry(f"+{largura_tela-180}+{altura_tela-400}")
+janela.geometry(f"+{largura_tela-180}+{altura_tela-450}")
 
 # Funções para arrastar a janela
 janela.bind("<ButtonPress-1>", lambda e: (setattr(janela, '_offset_x', e.x), setattr(janela, '_offset_y', e.y)))
@@ -266,7 +328,7 @@ janela.bind("<B1-Motion>", lambda e: janela.geometry(
 # Carrega os valores iniciais
 carregar_contador()
 
-# Interface do usuário
+# ------------- Interface do app tkinter------------
 frame_ramal = tk.Frame(janela, bg=corFundo)
 frame_ramal.pack(pady=10)
 
@@ -292,6 +354,9 @@ entry_leads.insert(0, str(leads))
 botao_lead = tk.Button(frame_leads, text="+1", font=("Arial", 10), bg=corBotao, fg=corClara, command=lambda: adicionar_lead())
 botao_lead.pack(side=tk.LEFT, padx=5)
 
+botao_lead_menos = tk.Button(frame_leads, text="-1", font=("Arial", 10), bg=corBotaoMenos, fg=corClara, command=lambda: diminuir_lead())
+botao_lead_menos.pack(side=tk.LEFT, padx=5)
+
 frame_reunioes = tk.Frame(janela, bg=corFundo)
 frame_reunioes.pack(pady=5)
 
@@ -305,26 +370,59 @@ entry_reunioes.insert(0, str(reunioes))
 botao_reuniao = tk.Button(frame_reunioes, text="+1", font=("Arial", 10), bg=corBotao, fg=corClara, command=lambda: adicionar_reuniao())
 botao_reuniao.pack(side=tk.LEFT, padx=5)
 
-botao_contar = tk.Button(janela, text="Ligação Feita", font=("Arial", 12), bg=corBotao, fg=corClara, command=contar_ligacao)
-botao_contar.pack(pady=5)
+botao_reuniao_menos = tk.Button(frame_reunioes, text="-1", font=("Arial", 10), bg=corBotaoMenos, fg=corClara, command=lambda: diminuir_reuniao())
+botao_reuniao_menos.pack(side=tk.LEFT, padx=5)
 
-botao_resetar = tk.Button(janela, text="Resetar Contador", font=("Arial", 10), bg=corReset, fg=corClara, command=resetar_contador)
+# Frame para os botões de ligação
+frame_ligacoes = tk.Frame(janela, bg=corFundo)
+frame_ligacoes.pack(pady=5)
+
+# Botão para incrementar +1 ligação
+botao_contar = tk.Button(frame_ligacoes, text="+1 Ligação", font=("Roboto", 11), bg=corBotao, fg=corClara, command=contar_ligacao)
+botao_contar.pack(side=tk.LEFT, padx=5)
+
+# Botão para decrementar -1 ligação
+botao_ligacao_menos = tk.Button(frame_ligacoes, text="-1 Ligação", font=("Roboto", 11), bg=corBotaoMenos, fg=corClara, command=diminuir_ligacao)
+botao_ligacao_menos.pack(side=tk.LEFT, padx=5)
+
+botao_resetar = tk.Button(janela, text="Resetar Contador", font=("Roboto", 10), bg=corReset, fg=corClara, command=resetar_contador)
 botao_resetar.pack(pady=5)
 
-botao_historico = tk.Button(janela, text="Abrir Histórico", font=("Arial", 10), bg=corBotao, fg=corClara, command=abrir_historico)
+botao_historico = tk.Button(janela, text="Abrir Histórico", font=("Roboto", 10), bg=corBotao, fg=corClara, command=abrir_historico)
 botao_historico.pack(pady=5)
 
-botao_anotacoes = tk.Button(janela, text="Anotações", font=("Arial", 10), bg=corBotao, fg=corClara, command=abrir_anotacoes)
+botao_anotacoes = tk.Button(janela, text="Anotações", font=("Roboto", 10), bg=corBotao, fg=corClara, command=abrir_anotacoes)
 botao_anotacoes.pack(pady=5)
 
 # Frame para os botões de Tema e Selecionar Cor
 frame_tema_cor = tk.Frame(janela, bg=corFundo)
 frame_tema_cor.pack(pady=2)
 
-botao_tema = tk.Button(frame_tema_cor, text="Tema", font=("Arial", 8), bg=corBotao, fg=corClara, width=8, command=alternar_tema)
+botao_tema = tk.Button(frame_tema_cor, text="Tema", font=("Roboto", 8), bg=corBotao, fg=corClara, width=8, command=alternar_tema)
 botao_tema.pack(side=tk.LEFT, padx=2)
 
-botao_cor = tk.Button(frame_tema_cor, text="Cor", font=("Arial", 8), bg=corBotao, fg=corClara, width=8, command=selecionar_cor)
+botao_cor = tk.Button(frame_tema_cor, text="Cor", font=("Roboto", 8), bg=corBotao, fg=corClara, width=8, command=selecionar_cor)
 botao_cor.pack(side=tk.LEFT, padx=2)
 
+# Carregar as imagens dos ícones git e linkedin
+icone_github_img = PhotoImage(file="src/github.png").subsample(25, 25)  # ajuste de escala
+icone_linkedin_img = PhotoImage(file="src/linkedin.png").subsample(25, 25)  # escala x,y
+
+# Frame para os ícones do GitHub e LinkedIn
+frame_icones = tk.Frame(janela, bg=corFundo)
+frame_icones.pack(side=tk.BOTTOM, pady=4)
+
+# Ícone do GitHub
+icone_github = tk.Label(frame_icones, text=" GitHub", font=("Roboto", 8), bg=corFundo, fg=corLinks, cursor="hand2",
+                        image=icone_github_img, compound=tk.LEFT) 
+icone_github.pack(side=tk.LEFT, padx=4)
+icone_github.bind("<Button-1>", lambda e: abrir_github())
+
+# Ícone do LinkedIn
+icone_linkedin = tk.Label(frame_icones, text=" LinkedIn", font=("Roboto", 8), bg=corFundo, fg=corLinks, cursor="hand2",
+                          image=icone_linkedin_img, compound=tk.LEFT) 
+icone_linkedin.pack(side=tk.LEFT, padx=4)
+icone_linkedin.bind("<Button-1>", lambda e: abrir_linkedin())
+
+# Iniciar o App
 janela.mainloop()
