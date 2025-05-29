@@ -4,7 +4,8 @@ Um aplicativo simples pra equipes SDR (Sales Development Representatives) contar
 
 ### Preview do App
 
-![image](https://github.com/user-attachments/assets/4ace41ea-3c1d-47de-b7f9-d175449a0ef6)
+![image](https://github.com/user-attachments/assets/59f4e1ac-dae2-402d-957e-6521e9a6b486)
+
 
 
 ## 🚀 Pra Que Serve?
